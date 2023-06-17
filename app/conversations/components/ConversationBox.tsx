@@ -9,6 +9,7 @@ import clsx from "clsx";
 import { FullConversationType } from "@/app/types";
 import useOtherUser from "@/app/hooks/useOtherUser";
 import Avatar from "@/app/components/Avatar";
+import AvatarGroup from "@/app/components/AvatarGroup";
 
 interface ConversationBoxProps {
   data: FullConversationType;
@@ -25,7 +26,7 @@ const ConversationBox: React.FC<ConversationBoxProps> = ({
 
   const handleClick = useCallback(() => {
     router.push(`/conversations/${data.id}`);
-  }, [data.id, router]);
+  }, [data, router]);
 
   const lastMessage = useMemo(() => {
     const messages = data.messages || [];
@@ -33,9 +34,10 @@ const ConversationBox: React.FC<ConversationBoxProps> = ({
     return messages[messages.length - 1];
   }, [data.messages]);
 
-  const userEmail = useMemo(() => {
-    return session?.data?.user?.email;
-  }, [session.data?.user?.email]);
+  const userEmail = useMemo(
+    () => session.data?.user?.email,
+    [session.data?.user?.email]
+  );
 
   const hasSeen = useMemo(() => {
     if (!lastMessage) {
@@ -73,33 +75,25 @@ const ConversationBox: React.FC<ConversationBoxProps> = ({
         flex
         items-center
         space-x-3
+        p-3
         hover:bg-neutral-100
         rounded-lg
         transition
         cursor-pointer
-        p-3
-    `,
+        `,
         selected ? "bg-neutral-100" : "bg-white"
       )}
     >
-      <Avatar user={otherUser} />
+      {data.isGroup ? (
+        <AvatarGroup users={data.users} />
+      ) : (
+        <Avatar user={otherUser} />
+      )}
       <div className="min-w-0 flex-1">
         <div className="focus:outline-none">
-          <div
-            className="
-                    flex
-                    justify-between
-                    items-center
-                    mb-1
-                "
-          >
-            <p
-              className="
-                    text-md
-                    font-medium
-                    text-gray-900
-                "
-            >
+          <span className="absolute inset-0" aria-hidden="true" />
+          <div className="flex justify-between items-center mb-1">
+            <p className="text-md font-medium text-gray-900">
               {data.name || otherUser.name}
             </p>
             {lastMessage?.createdAt && (
@@ -117,9 +111,9 @@ const ConversationBox: React.FC<ConversationBoxProps> = ({
           <p
             className={clsx(
               `
-                truncate
-                text-sm
-            `,
+              truncate
+              text-sm
+              `,
               hasSeen ? "text-gray-500" : "text-black font-medium"
             )}
           >
